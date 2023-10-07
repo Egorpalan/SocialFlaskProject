@@ -12,19 +12,19 @@ def index():
 @app.post("/users/create")
 def user_create():
     data = request.get_json()
-    id = len(USERS)
+    user_id = len(USERS)
     first_name = data.get("first_name")
     last_name = data.get("last_name")
     email = data.get("email")
     total_reactions = data.get("total_reactions")
     if not models.User.is_valid_email(email):
         return Response(status=HTTPStatus.BAD_REQUEST)
-    user = models.User(id, first_name, last_name, email, total_reactions)
+    user = models.User(user_id, first_name, last_name, email, total_reactions)
     USERS.append(user)
     response = Response(
         json.dumps(
             {
-                "id": user.id,
+                "user_id": user.id,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "email": user.email,
@@ -46,7 +46,7 @@ def get_user(user_id):
     response = Response(
         json.dumps(
             {
-                "id": user.id,
+                "user_id": user.id,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "email": user.email,
