@@ -16,10 +16,9 @@ def user_create():
     first_name = data.get("first_name")
     last_name = data.get("last_name")
     email = data.get("email")
-    total_reactions = data.get("total_reactions")
     if not models.User.is_valid_email(email):
         return Response(status=HTTPStatus.BAD_REQUEST)
-    user = models.User(user_id, first_name, last_name, email, total_reactions)
+    user = models.User(user_id, first_name, last_name, email)
     USERS.append(user)
     response = Response(
         json.dumps(
@@ -68,9 +67,9 @@ def post_create():
     text = data.get("text")
     post = models.Posts(post_id, author_id, text)
     if author_id < 0 or author_id >= len(USERS):
-        return Response(status=HTTPStatus.BAD_REQUEST)
+        return Response(status=HTTPStatus.NOT_FOUND)
     POSTS.append(post)
-    USERS[author_id].posts[post_id] = text
+    USERS[author_id].posts.append(post_id)
     response = Response(
         json.dumps(
             {
@@ -104,3 +103,18 @@ def get_post(post_id):
         mimetype="application/json",
     )
     return response
+
+
+@app.post("/posts/<int:post_id>/reaction")
+def put_reaction(post_id):
+    if post_id < 0 or post_id >= len(POSTS):
+        return Response(status=HTTPStatus.NOT_FOUND)
+    data = request.get_json()
+    user_id = data.get("user_id")
+    reaction = data.get("reaction")
+    author_id = POSTS[post_id].author_id
+    if user_id != author_id:
+        return Response(status=HTTPStatus.FORBIDDEN)
+    POSTS[post_id].reactions.append(reaction)
+    USERS[user_id].total_reactions += 1
+    return Response(status=HTTPStatus.OK)
