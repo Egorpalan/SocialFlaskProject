@@ -1,4 +1,4 @@
-from app import app, USERS, models
+from app import app, USERS, POSTS, models
 from flask import request, Response
 import json
 from http import HTTPStatus
@@ -52,6 +52,52 @@ def get_user(user_id):
                 "email": user.email,
                 "total_reactions": user.total_reactions,
                 "posts": user.posts,
+            }
+        ),
+        HTTPStatus.OK,
+        mimetype="application/json",
+    )
+    return response
+
+
+@app.post("/posts/create")
+def post_create():
+    data = request.get_json()
+    post_id = len(POSTS)
+    author_id = data.get("author_id")
+    text = data.get("text")
+    post = models.Posts(post_id, author_id, text)
+    if author_id < 0 or author_id >= len(USERS):
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    POSTS.append(post)
+    USERS[author_id].posts[post_id] = text
+    response = Response(
+        json.dumps(
+            {
+                "post_id": post.id,
+                "author_id": post.author_id,
+                "text": post.text,
+                "reactions": post.reactions,
+            }
+        ),
+        HTTPStatus.OK,
+        mimetype="application/json",
+    )
+    return response
+
+
+@app.get("/posts/<int:post_id>")
+def get_post(post_id):
+    if post_id < 0 or post_id >= len(POSTS):
+        return Response(status=HTTPStatus.NOT_FOUND)
+    post = POSTS[post_id]
+    response = Response(
+        json.dumps(
+            {
+                "post_id": post.id,
+                "author_id": post.author_id,
+                "text": post.text,
+                "reactions": post.reactions,
             }
         ),
         HTTPStatus.OK,

@@ -2,13 +2,13 @@ import re
 
 
 class User:
-    def __init__(self, id, first_name, last_name, email, total_reactions, posts=[]):
+    def __init__(self, id, first_name, last_name, email, total_reactions):
         self.id = id
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
         self.total_reactions = total_reactions
-        self.posts = posts
+        self.posts = {}
 
     @staticmethod
     def is_valid_email(email):
@@ -17,3 +17,11 @@ class User:
             return True
         else:
             return False
+
+
+class Posts:
+    def __init__(self, id, author_id, text, reactions=[]):
+        self.id = id
+        self.author_id = author_id
+        self.text = text
+        self.reactions = reactions
