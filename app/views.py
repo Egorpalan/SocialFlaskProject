@@ -39,7 +39,7 @@ def user_create():
 
 @app.get("/users/<int:user_id>")
 def get_user(user_id):
-    if user_id < 0 or user_id >= len(USERS):
+    if models.User.is_valid_user_id(user_id):
         return Response(status=HTTPStatus.NOT_FOUND)
     user = USERS[user_id]
     response = Response(
@@ -66,7 +66,7 @@ def post_create():
     author_id = data.get("author_id")
     text = data.get("text")
     post = models.Posts(post_id, author_id, text)
-    if author_id < 0 or author_id >= len(USERS):
+    if models.Posts.is_valid_author_id(author_id):
         return Response(status=HTTPStatus.NOT_FOUND)
     POSTS.append(post)
     USERS[author_id].posts.append(post_id)
@@ -87,7 +87,7 @@ def post_create():
 
 @app.get("/posts/<int:post_id>")
 def get_post(post_id):
-    if post_id < 0 or post_id >= len(POSTS):
+    if models.Posts.is_valid_post_id(post_id):
         return Response(status=HTTPStatus.NOT_FOUND)
     post = POSTS[post_id]
     response = Response(
@@ -107,7 +107,7 @@ def get_post(post_id):
 
 @app.post("/posts/<int:post_id>/reaction")
 def put_reaction(post_id):
-    if post_id < 0 or post_id >= len(POSTS):
+    if models.Posts.is_valid_post_id(post_id):
         return Response(status=HTTPStatus.NOT_FOUND)
     data = request.get_json()
     user_id = data.get("user_id")

@@ -1,4 +1,5 @@
 import re
+from app import USERS,POSTS
 
 
 class User:
@@ -18,6 +19,12 @@ class User:
         else:
             return False
 
+    @staticmethod
+    def is_valid_user_id(user_id):
+        if user_id < 0 or user_id >= len(USERS):
+            return True
+        return False
+
 
 class Posts:
     def __init__(self, id, author_id, text):
@@ -25,3 +32,15 @@ class Posts:
         self.author_id = author_id
         self.text = text
         self.reactions = []
+
+    @staticmethod
+    def is_valid_author_id(author_id):
+        if author_id < 0 or author_id >= len(USERS):
+            return True
+        return False
+
+    @staticmethod
+    def is_valid_post_id(post_id):
+        if post_id < 0 or post_id >= len(POSTS):
+            return True
+        return False
