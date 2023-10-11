@@ -1,5 +1,5 @@
 import re
-from app import USERS,POSTS
+from app import USERS, POSTS
 
 
 class User:

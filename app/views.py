@@ -118,3 +118,65 @@ def put_reaction(post_id):
     POSTS[post_id].reactions.append(reaction)
     USERS[user_id].total_reactions += 1
     return Response(status=HTTPStatus.OK)
+
+
+@app.get("/users/<int:user_id>/posts")
+def get_all_post(user_id):
+    if models.User.is_valid_user_id(user_id):
+        return Response(status=HTTPStatus.NOT_FOUND)
+    data = request.get_json()
+    sort = data.get("sort")
+    user = USERS[user_id]
+    user_posts = [POSTS[post_id] for post_id in user.posts]
+    if sort == "asc":
+        user_posts.sort(key=lambda post: len(post.reactions), reverse=False)
+    if sort == "desc":
+        user_posts.sort(key=lambda post: len(post.reactions), reverse=True)
+    response = Response(
+        json.dumps(
+            {
+                "posts": [
+                    {
+                        "id": post.id,
+                        "author_id": post.author_id,
+                        "text": post.text,
+                        "reactions": post.reactions,
+                    }
+                    for post in user_posts
+                ]
+            }
+        ),
+        HTTPStatus.OK,
+        mimetype="application/json",
+    )
+    return response
+
+
+@app.get("/users/leaderboard")
+def get_all_users():
+    data = request.get_json()
+    type = data.get("type")
+    sort = data.get("sort")
+    if sort == "asc":
+        USERS.sort(key=lambda user: user.total_reactions, reverse=False)
+    if sort == "desc":
+        USERS.sort(key=lambda user: user.total_reactions, reverse=True)
+    response = Response(
+        json.dumps(
+            {
+                "users": [
+                    {
+                        "id": user.id,
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                        "email": user.email,
+                        "total_reactions": user.total_reactions,
+                    }
+                    for user in USERS
+                ]
+            }
+        ),
+        HTTPStatus.OK,
+        mimetype="application/json",
+    )
+    return response
