@@ -1,7 +1,8 @@
 from app import app, USERS, POSTS, models
-from flask import request, Response
+from flask import request, Response, url_for
 import json
 from http import HTTPStatus
+import matplotlib.pyplot as plt
 
 
 @app.route("/")
@@ -126,6 +127,8 @@ def get_all_post(user_id):
         return Response(status=HTTPStatus.NOT_FOUND)
     data = request.get_json()
     sort = data.get("sort")
+    if sort != "asc" and sort != "desc":
+        return Response(status=HTTPStatus.BAD_REQUEST)
     user = USERS[user_id]
     user_posts = [POSTS[post_id] for post_id in user.posts]
     if sort == "asc":
@@ -157,26 +160,46 @@ def get_all_users():
     data = request.get_json()
     type = data.get("type")
     sort = data.get("sort")
+    if (sort != "asc" and sort != "desc") and sort != None:
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    if type != "list" and type != "graph":
+        return Response(status=HTTPStatus.BAD_REQUEST)
     if sort == "asc":
         USERS.sort(key=lambda user: user.total_reactions, reverse=False)
     if sort == "desc":
         USERS.sort(key=lambda user: user.total_reactions, reverse=True)
-    response = Response(
-        json.dumps(
-            {
-                "users": [
-                    {
-                        "id": user.id,
-                        "first_name": user.first_name,
-                        "last_name": user.last_name,
-                        "email": user.email,
-                        "total_reactions": user.total_reactions,
-                    }
-                    for user in USERS
-                ]
-            }
-        ),
-        HTTPStatus.OK,
-        mimetype="application/json",
-    )
-    return response
+    if type == "list":
+        response = Response(
+            json.dumps(
+                {
+                    "users": [
+                        {
+                            "id": user.id,
+                            "first_name": user.first_name,
+                            "last_name": user.last_name,
+                            "email": user.email,
+                            "total_reactions": user.total_reactions,
+                        }
+                        for user in USERS
+                    ]
+                }
+            ),
+            HTTPStatus.OK,
+            mimetype="application/json",
+        )
+        return response
+    if type == "graph":
+        fig, ax = plt.subplots()
+        users = [user for user in USERS]
+        user_names = [f"{user.first_name} {user.last_name} {user.id}" for user in users]
+        user_reactions = [user.total_reactions for user in users]
+        ax.bar(user_names, user_reactions)
+        ax.set_ylabel("User reactions")
+        ax.set_title("User leaderboard by Reaction")
+        plt.savefig("app/static/users_leaderboard.png")
+        response = Response(
+            f'<img src= "{url_for("static",filename="users_leaderboard.png")}">',
+            HTTPStatus.OK,
+            mimetype="text/html",
+        )
+        return response
